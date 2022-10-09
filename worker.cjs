@@ -8,7 +8,22 @@ exports.runTest = async function (testFile) {
     errorMessage: null,
   };
   try {
+    const describeFns = [];
+    let currentDescribeFn;
+    const describe = (name, fn) => describeFns.push([name, fn]);
+    const it = (name, fn) => currentDescribeFn.push([name, fn]);
     eval(code);
+    for (const [name, fn] of describeFns) {
+      currentDescribeFn = [];
+      testName = name;
+      fn();
+
+      currentDescribeFn.forEach(([name, fn]) => {
+        testName += " " + name;
+        fn();
+      });
+    }
+
     testResult.success = true;
   } catch (error) {
     testResult.errorMessage = error.message;
