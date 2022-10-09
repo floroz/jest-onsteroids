@@ -1,4 +1,5 @@
 import JestHasteMap from "jest-haste-map";
+import { Worker } from "jest-worker";
 import { cpus } from "os";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -23,5 +24,11 @@ const { hasteFS } = await hasteMap.build();
 
 const testFiles = hasteFS.matchFilesWithGlob(["**/*.test.js"]);
 
-console.log(testFiles);
-// ['/path/to/tests/01.test.js', '/path/to/tests/02.test.js', …]
+const worker = new Worker(path.join(root, "worker.cjs"));
+
+await Promise.all(
+  Array.from(testFiles).map(async (testFile) => {
+    const testResult = await worker.runTest(testFile);
+    console.log(testResult);
+  })
+);
