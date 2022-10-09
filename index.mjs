@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import JestHasteMap from "jest-haste-map";
 import { Worker } from "jest-worker";
 import { cpus } from "os";
@@ -28,9 +29,40 @@ const worker = new Worker(path.join(root, "worker.cjs"), {
   enableWorkerThreads: true,
 });
 
+const failedTests = [];
+const successTests = [];
+
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
-    const testResult = await worker.runTest(testFile);
-    console.log(testResult);
+    const testResults = await worker.runTest(testFile);
+
+    if (testResults.success) {
+      successTests.push(testResults);
+    } else {
+      failedTests.push(testResults);
+    }
   })
 );
+
+if (failedTests.length) {
+  failedTests.forEach((result) =>
+    console.error(chalk.red(result.errorMessage))
+  );
+  console.error(
+    chalk.red(
+      `Failed: ${failedTests.length} ${
+        failedTests.length > 1 ? "Tests" : "Test"
+      } out of ${successTests.length + failedTests.length}`
+    )
+  );
+  process.exit(1);
+} else {
+  console.log(
+    chalk.green(
+      `Successfully run ${successTests.length} ${
+        successTests.length > 1 ? "Tests" : "Test"
+      }`
+    )
+  );
+  process.exit(0);
+}
