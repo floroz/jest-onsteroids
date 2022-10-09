@@ -31,50 +31,40 @@ const worker = new Worker(path.join(root, "worker.cjs"), {
   enableWorkerThreads: true,
 });
 
-const failedTests = [];
-const successTests = [];
+let hasFailed = false;
 
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
-    const testResults = await worker.runTest(testFile);
-
-    const { success, errorMessage } = testResults;
+    const { success, testResults, errorMessage } = await worker.runTest(
+      testFile
+    );
     const status = success
       ? chalk.green.inverse.bold(" PASS ")
       : chalk.red.inverse.bold(" FAIL ");
 
     console.log(status + " " + chalk.dim(path.relative(root, testFile)));
     if (!success) {
-      console.log("  " + chalk.red(errorMessage));
-    }
-
-    if (success) {
-      successTests.push(testResults);
-    } else {
-      failedTests.push(testResults);
+      hasFailed = true;
+      if (testResults) {
+        testResults
+          .filter((result) => result.errors.length)
+          .forEach((result) =>
+            console.log(
+              result.testPath.slice(1).join(" ") + "\n" + result.errors[0]
+            )
+          );
+      } else if (errorMessage) {
+        console.log("  " + errorMessage);
+      }
     }
   })
 );
 
 worker.end();
-
-if (failedTests.length) {
-  console.error(
-    chalk.red(
-      `Failed: ${failedTests.length} ${
-        failedTests.length > 1 ? "Tests" : "Test"
-      } out of ${successTests.length + failedTests.length}`
-    )
-  );
-  process.exitCode = 1;
-} else {
-  const pass = successTests.length;
+if (hasFailed) {
   console.log(
-    chalk.green(
-      `Successfully run ${pass}/${pass} ${
-        successTests.length > 1 ? "Tests" : "Test"
-      }`
-    )
+    "\n" + chalk.red.bold("Test run failed, please fix all the failing tests.")
   );
-  process.exit(0);
+  // Set an exit code to indicate failure.
+  process.exitCode = 1;
 }
