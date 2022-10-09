@@ -23,7 +23,9 @@ await hasteMap.setupCachePath(hasteMapOptions);
 // Build and return an in-memory HasteFS ("Haste File System") instance.
 const { hasteFS } = await hasteMap.build();
 
-const testFiles = hasteFS.matchFilesWithGlob(["**/*.test.js"]);
+const testFiles = hasteFS.matchFilesWithGlob([
+  process.argv[2] ? `**/${process.argv[2]}*` : "**/*.test.js",
+]);
 
 const worker = new Worker(path.join(root, "worker.cjs"), {
   enableWorkerThreads: true,
@@ -54,6 +56,8 @@ await Promise.all(
   })
 );
 
+worker.end();
+
 if (failedTests.length) {
   console.error(
     chalk.red(
@@ -62,7 +66,7 @@ if (failedTests.length) {
       } out of ${successTests.length + failedTests.length}`
     )
   );
-  process.exit(1);
+  process.exitCode = 1;
 } else {
   const pass = successTests.length;
   console.log(
