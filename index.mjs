@@ -57,9 +57,10 @@ if (failedTests.length) {
   );
   process.exit(1);
 } else {
+  const pass = successTests.length;
   console.log(
     chalk.green(
-      `Successfully run ${successTests.length} ${
+      `Successfully run ${pass}/${pass} ${
         successTests.length > 1 ? "Tests" : "Test"
       }`
     )
