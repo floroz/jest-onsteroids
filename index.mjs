@@ -24,7 +24,9 @@ const { hasteFS } = await hasteMap.build();
 
 const testFiles = hasteFS.matchFilesWithGlob(["**/*.test.js"]);
 
-const worker = new Worker(path.join(root, "worker.cjs"));
+const worker = new Worker(path.join(root, "worker.cjs"), {
+  enableWorkerThreads: true,
+});
 
 await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
