@@ -36,7 +36,17 @@ await Promise.all(
   Array.from(testFiles).map(async (testFile) => {
     const testResults = await worker.runTest(testFile);
 
-    if (testResults.success) {
+    const { success, errorMessage } = testResults;
+    const status = success
+      ? chalk.green.inverse.bold(" PASS ")
+      : chalk.red.inverse.bold(" FAIL ");
+
+    console.log(status + " " + chalk.dim(path.relative(root, testFile)));
+    if (!success) {
+      console.log("  " + chalk.red(errorMessage));
+    }
+
+    if (success) {
       successTests.push(testResults);
     } else {
       failedTests.push(testResults);
@@ -45,9 +55,6 @@ await Promise.all(
 );
 
 if (failedTests.length) {
-  failedTests.forEach((result) =>
-    console.error(chalk.red(result.errorMessage))
-  );
   console.error(
     chalk.red(
       `Failed: ${failedTests.length} ${
