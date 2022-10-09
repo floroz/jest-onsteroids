@@ -1,0 +1,16 @@
+{
+  "name": "testing-framework",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "glob": "^8.0.3",
+    "jest-haste-map": "^29.1.2"
+  }
+}
